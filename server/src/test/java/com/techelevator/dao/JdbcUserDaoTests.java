@@ -1,14 +1,12 @@
 package com.techelevator.dao;
 
 
-import com.techelevator.tenmo.dao.JdbcUserDao;
+import com.techelevator.tenmo.dao.user.JdbcUserDao;
 import com.techelevator.tenmo.model.User;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import javax.sql.DataSource;
 
 public class JdbcUserDaoTests extends BaseDaoTests{
 

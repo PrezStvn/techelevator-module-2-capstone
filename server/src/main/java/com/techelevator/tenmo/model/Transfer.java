@@ -7,6 +7,8 @@ public class Transfer {
     private int senderId;
     private int receiverId;
     private BigDecimal transferAmount;
+    // approved or not
+    private Boolean status;
 
     public Transfer(){}
 

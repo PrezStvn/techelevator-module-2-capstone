@@ -32,8 +32,8 @@ public class Account {
         this.userId = userId;
     }
 
-    public BigDecimal getBalance() {
-        return balance;
+    public static BigDecimal getBalance() {
+        return getBalance();
     }
 
     public void setBalance(BigDecimal balance) {

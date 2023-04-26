@@ -15,7 +15,7 @@ public class JdbcTransferDao implements TransferDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // TODO: needs to be filled out (step 5)ggit
+    // TODO: needs to be filled out (step 5)
     @Override
     public void sendTransfer(Transfer transfer) {
     }

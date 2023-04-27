@@ -10,16 +10,18 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class JdbcAccountDao implements AccountDao{
 
     private static final Logger logger = LogManager.getLogger(TenmoApplication.class);
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public JdbcAccountDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -51,7 +53,7 @@ public class JdbcAccountDao implements AccountDao{
     }
 
     @Override
-    public Account getBalance(int accountId) {
+    public Account get(int accountId) {
         Account account = null;
         String sql = "SELECT account_id, balance FROM account WHERE account_id = ?";
 

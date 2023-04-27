@@ -10,9 +10,11 @@ public interface AccountDao {
 
     int findByAccountId(String username);
 
+
+
     // TODO: step 4
 
-    Account getBalance(int accountId);
+    Account get(int accountId);
 
     boolean create(int userId, BigDecimal balance);
 

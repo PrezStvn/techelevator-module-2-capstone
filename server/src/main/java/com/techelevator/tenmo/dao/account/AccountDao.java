@@ -14,15 +14,14 @@ public interface AccountDao {
 
     Account getBalance(int accountId);
 
-    Account create(Account account);
-
-    Account update(Account account, int userId);
+    Account create(int userId, BigDecimal balance);
 
     Account update(Account account);
 
     void delete(int accountId);
 
 }
+
 
 
 

@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,12 +72,12 @@ public class JdbcAccountDao implements AccountDao{
 
     // TODO fix
     @Override
-    public Account create(Account account) {
+    public Account create(int userId, BigDecimal balance) {
         Account newAccount = null;
         String sql = "INSERT INTO account (user_id, balance) VALUES (?, ?) RETURNING account_id";
         try {
             int newAccountId = jdbcTemplate.queryForObject(sql, int.class,
-                    account.getUserId(), account.getBalance());
+                    userId, balance);
 
             newAccount = findByAccountId(newAccountId);
         } catch (CannotGetJdbcConnectionException e) {

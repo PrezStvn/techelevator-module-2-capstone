@@ -39,9 +39,6 @@ public class JdbcAccountDaoTest extends BaseDaoTests {
 
     @Test
     public void findByAccountId_returns_null_when_id_not_found() {
-        /*
-         * Check null when trying to read a city that's not in the db
-         */
         Account account = sut.findByAccountId(23);
         Assert.assertNull(account);
     }

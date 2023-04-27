@@ -10,16 +10,17 @@ public interface AccountDao {
 
     Account findByAccountId(int accountId);
 
+
+
     // TODO: step 4
 
-    Account getBalance(int accountId);
-    
-    Account create(Account account);
+    Account get(int accountId);
+
+    Account create(int userId, BigDecimal balance);
 
     Account update(Account account, int userId);
 
-    Account update(Account account);
-
     void delete(int accountId);
-    
+
 }
+

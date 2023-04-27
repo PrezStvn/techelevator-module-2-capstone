@@ -19,7 +19,7 @@ public class AccountController {
     public AccountController(AccountDao accountDao) { this.dao = accountDao;}
 
 
-
+    //TODO: add transaction status to transaction class and table, possibly as an enumerated type.
     @RequestMapping(path = "/{id}", method =  RequestMethod.GET)
     public Account get(@PathVariable int id) {
         Account account = dao.get(id);

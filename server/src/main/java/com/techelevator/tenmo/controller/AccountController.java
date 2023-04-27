@@ -21,8 +21,6 @@ public class AccountController {
         this.dao = accountDao;
     }
 
-
-
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public Account get(@PathVariable int id) {
         Account account = dao.findByAccountId(id);

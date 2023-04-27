@@ -13,9 +13,10 @@ public interface TransferDao {
 
     // these methods work together to implement the sending
 
-    Transfer createTransfer(Transfer transfer, int senderId, int receiverId, BigDecimal transferAmount);
+    Transfer getTransfer(int transferId);
 
-    // make this boolean so that we can return approved status
+    Transfer createTransfer(int senderId, int receiverId, BigDecimal transferAmount);
+
     Transfer updateTransfer(Transfer transfer, int transferId);
 
 }

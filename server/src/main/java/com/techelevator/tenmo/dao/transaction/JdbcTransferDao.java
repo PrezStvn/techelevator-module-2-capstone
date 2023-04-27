@@ -1,5 +1,6 @@
 package com.techelevator.tenmo.dao.transaction;
 
+import com.techelevator.tenmo.dao.account.AccountDao;
 import com.techelevator.tenmo.exception.DaoException;
 import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transfer;
@@ -18,9 +19,12 @@ import java.util.List;
 public class JdbcTransferDao implements TransferDao {
 
     private JdbcTemplate jdbcTemplate;
+    private AccountDao accountDao;
 
-    public JdbcTransferDao(JdbcTemplate jdbcTemplate) {
+    public JdbcTransferDao(JdbcTemplate jdbcTemplate, AccountDao accountDao) {
+
         this.jdbcTemplate = jdbcTemplate;
+        this.accountDao = accountDao;
     }
 
     // 6. As an authenticated user of the system, I need to be able to see transfers I have sent or received.
@@ -62,20 +66,36 @@ public class JdbcTransferDao implements TransferDao {
         }
         return transfers;
     }
-    // tODO may need to implement 3. A transfer includes the usernames of the from and to users and the amount of TE Bucks.
-    // TODO 4. The receiver's account balance is increased by the amount of the transfer.
-//   TODO 5. The sender's account balance is decreased by the amount of the transfer.
+
     @Override
-    public Transfer createTransfer(Transfer transfer, int senderId, int receiverId, BigDecimal transferAmount) {
+    public Transfer getTransfer(int transferId) {
+        Transfer transfer = null;
+        String sql = "SELECT transfer_id, sender_id, receiver_id, transfer_amount FROM transfer WHERE transfer_id=?";
+        try {
+            SqlRowSet results = jdbcTemplate.queryForRowSet(sql, transferId);
+            if (results.next()) {
+                transfer = mapRowToTransfer(results);
+            }
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new DaoException("Unable to connect to server or database", e);
+        } catch (BadSqlGrammarException e) {
+            throw new DaoException("SQL syntax error", e);
+        }
+        return transfer;
+    }
+    // TODO see if receiver id exist
+    @Override
+    public Transfer createTransfer(int senderId, int receiverId, BigDecimal transferAmount) {
 // 5.8. A Sending Transfer has an initial status of *Approved*.
         Transfer newTransfer = null;
         String sql = "INSERT INTO transfers (sender_id, receiver_id, amount, status) " +
                 "VALUES (?, ?, ?, 'Approved') " +
                 "RETURNING transfer_id";
-        Account account = new Account();
-        int senderAccount = transfer.getSenderId();
+
         // int receiverAccount = transfer.getReceiverId();
 // step 5.2: I must not be allowed to send money to myself.
+
+        Account updatedAccount = accountDao.findByAccountId(senderId);
         if (senderId == receiverId) {
             throw new IllegalArgumentException("Sender and receiver cannot be the same");
         }
@@ -84,19 +104,22 @@ public class JdbcTransferDao implements TransferDao {
             throw new IllegalArgumentException("Transfer amount must be greater than zero");
         }
 //  5.6. I can't send more TE Bucks than I have in my account.
-        if (account.getBalance().compareTo(transferAmount) < 0) {
+        if (updatedAccount.getBalance().compareTo(transferAmount) < 0) {
             throw new IllegalArgumentException("Insufficient funds");
         }
 
         // Update sender's account balance
-        BigDecimal newSenderBalance = account.getBalance().subtract(transferAmount);
-        account.setBalance(newSenderBalance);
-        // TODO  // save updated account balance to the database
+        updatedAccount.setBalance(updatedAccount.getBalance().subtract(transferAmount));
+        accountDao.update(updatedAccount);
+
+        // Update receiver's account balance
+        Account updatedReceiverAccount = accountDao.findByAccountId(receiverId);
+        updatedAccount.setBalance(updatedAccount.getBalance().add(transferAmount));
+        accountDao.update(updatedReceiverAccount);
 
         try {
-            Integer transferId = jdbcTemplate.queryForObject(sql, Integer.class,
-                    transfer.getSenderId(), transfer.getReceiverId(), transferAmount);
-            newTransfer = new Transfer(transferId, transfer.getSenderId(), transfer.getReceiverId(), transferAmount);
+            Integer transferId = jdbcTemplate.queryForObject(sql, Integer.class, senderId, receiverId, transferAmount);
+            newTransfer = getTransfer(transferId);
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException("Unable to connect to server or database", e);
         } catch (BadSqlGrammarException e) {

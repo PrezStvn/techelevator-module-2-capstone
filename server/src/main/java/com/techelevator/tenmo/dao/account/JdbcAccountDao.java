@@ -1,5 +1,6 @@
 package com.techelevator.tenmo.dao.account;
 
+import com.techelevator.tenmo.dao.user.UserDao;
 import com.techelevator.tenmo.exception.DaoException;
 import com.techelevator.tenmo.model.Account;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -17,9 +18,11 @@ import java.util.List;
 public class JdbcAccountDao implements AccountDao{
 
     private JdbcTemplate jdbcTemplate;
+    private UserDao userDao;
 
     public JdbcAccountDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        this.userDao = userDao;
     }
 
     @Override
@@ -42,7 +45,7 @@ public class JdbcAccountDao implements AccountDao{
         return accounts;
     }
 
-
+@Override
     public Account findByAccountId(int accountId){
         String sql = "SELECT user_id, balance FROM account WHERE account_id=?;";
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, accountId);

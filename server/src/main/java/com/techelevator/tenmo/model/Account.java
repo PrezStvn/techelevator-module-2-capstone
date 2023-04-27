@@ -33,7 +33,7 @@ public class Account {
     }
 
     public BigDecimal getBalance() {
-        return getBalance();
+        return this.balance;
     }
 
     public void setBalance(BigDecimal balance) {

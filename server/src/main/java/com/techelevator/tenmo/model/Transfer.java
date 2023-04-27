@@ -8,7 +8,9 @@ public class Transfer {
     private int receiverId;
     private BigDecimal transferAmount;
     // approved or not
-    private Boolean status;
+
+    private enum Status {PENDING, APPROVED, DENIED};
+    private Status status = Status.PENDING;
 
     public Transfer(){}
 

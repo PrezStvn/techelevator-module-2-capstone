@@ -32,7 +32,7 @@ public class Account {
         this.userId = userId;
     }
 
-    public static BigDecimal getBalance() {
+    public BigDecimal getBalance() {
         return getBalance();
     }
 

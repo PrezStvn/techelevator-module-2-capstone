@@ -8,16 +8,16 @@ import java.util.List;
 public interface AccountDao {
     List<Account> getAllAccounts();
 
-    int findByAccountId(String username);
+    Account findByAccountId(int accountId);
 
     // TODO: step 4
 
     Account getBalance(int accountId);
 
-    boolean create(int userId, BigDecimal balance);
+    Integer create(int userId, BigDecimal balance);
 
     Account update(Account account, int userId);
 
-    Void delete(int accountId);
+    void delete(int accountId);
 
 }

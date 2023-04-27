@@ -23,7 +23,7 @@ public class JdbcTransferDao implements TransferDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // TODO: needs to be filled out (step 5)
+    // 6. As an authenticated user of the system, I need to be able to see transfers I have sent or received.
 
     @Override
     public List<Transfer> getAllTransfers() {
@@ -44,7 +44,7 @@ public class JdbcTransferDao implements TransferDao {
 
         return transfers;
     }
-
+// 7. 7. As an authenticated user of the system, I need to be able to retrieve the details of any transfer based upon the transfer ID.
     @Override
     public List<Transfer> getTransfersForUser(int userId) {
         List<Transfer> transfers = new ArrayList<>();
@@ -62,26 +62,36 @@ public class JdbcTransferDao implements TransferDao {
         }
         return transfers;
     }
-
+// tODO may need to implement 3. A transfer includes the usernames of the from and to users and the amount of TE Bucks.
+    // TODO 4. The receiver's account balance is increased by the amount of the transfer.
+//   TODO 5. The sender's account balance is decreased by the amount of the transfer.
     @Override
     public Transfer createTransfer(Transfer transfer, int senderId, int receiverId, BigDecimal transferAmount) {
-
+// 5.8. A Sending Transfer has an initial status of *Approved*.
         Transfer newTransfer = null;
         String sql = "INSERT INTO transfers (sender_id, receiver_id, amount, status) " +
                 "VALUES (?, ?, ?, 'Approved') " +
                 "RETURNING transfer_id";
         Account account = new Account();
-
+        int senderAccount = transfer.getSenderId();
+       // int receiverAccount = transfer.getReceiverId();
+// step 5.2: I must not be allowed to send money to myself.
         if (senderId == receiverId) {
             throw new IllegalArgumentException("Sender and receiver cannot be the same");
         }
+        // 5.7. I can't send a zero or negative amount.
         if (transferAmount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Transfer amount must be greater than zero");
         }
-        // TODO may have to fix this to sender account somehow
+//  5.6. I can't send more TE Bucks than I have in my account.
         if (account.getBalance().compareTo(transferAmount) < 0) {
             throw new IllegalArgumentException("Insufficient funds");
         }
+
+        // Update sender's account balance
+        BigDecimal newSenderBalance = account.getBalance().subtract(transferAmount);
+        account.setBalance(newSenderBalance);
+        // TODO  // save updated account balance to the database
 
         try {
             Integer transferId = jdbcTemplate.queryForObject(sql, Integer.class,

@@ -24,7 +24,7 @@ public class JdbcAccountDaoTest extends BaseDaoTests {
     @Before
     public void setup() {
         sut = new JdbcAccountDao((JdbcTemplate) dataSource);
-        testAccount = new Account(3000,4000,BigDecimal.valueOf(5000));
+        testAccount = new Account(3001,4000,BigDecimal.valueOf(5000));
     }
 
 
@@ -52,13 +52,14 @@ public class JdbcAccountDaoTest extends BaseDaoTests {
 
     @Test
     public void create_returns_account_with_id_and_expected_values() {
-        Account createdAccount = sut.create(testAccount);
+        Account createdAccount = sut.create(4000, BigDecimal.valueOf(5000));
 
         int newId = createdAccount.getAccountId();
         Assert.assertTrue(newId > 0);
 
         Account retrievedAccount = sut.findByAccountId(newId);
         assertAccountsMatch(createdAccount, retrievedAccount);
+        assertAccountsMatch(createdAccount, testAccount);
     }
 
     @Test

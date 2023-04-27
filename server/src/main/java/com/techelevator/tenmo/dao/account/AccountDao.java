@@ -13,10 +13,8 @@ public interface AccountDao {
     // TODO: step 4
 
     Account getBalance(int accountId);
-    
-    Account create(Account account);
 
-    Account update(Account account, int userId);
+    Account create(int userId, BigDecimal balance);
 
     Account update(Account account);
 

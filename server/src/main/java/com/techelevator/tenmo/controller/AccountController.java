@@ -22,10 +22,10 @@ public class AccountController {
     }
 
 
-    //TODO: add transaction status to transaction class and table, possibly as an enumerated type.
+
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public Account get(@PathVariable int id) {
-        Account account = dao.get(id);
+        Account account = dao.findByAccountId(id);
         if (account == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account Not Found");
         } else return account;
@@ -40,9 +40,11 @@ public class AccountController {
     @RequestMapping(path = "/{id}", method = RequestMethod.PUT)
     @PreAuthorize("hasAnyRole('ADMIN', 'CREATOR')")
     public Account update(@Valid @RequestBody Account account, @PathVariable int id) {
-        Account updatedAccount = dao.update(account, id);
+        Account updatedAccount = dao.update(account);
         if (updatedAccount == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account Not Found");
+        } else if(account.getAccountId() != id) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "path does not match accountId");
         } else return updatedAccount;
     }
 

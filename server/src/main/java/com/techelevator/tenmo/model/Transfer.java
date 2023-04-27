@@ -8,9 +8,12 @@ public class Transfer {
     private int receiverId;
     private BigDecimal transferAmount;
     // approved or not
-    private Boolean status;
+    private enum Status {PENDING, APPROVED, DENIED};
+    private Status status = Status.PENDING;
 
-    public Transfer(){}
+    public Transfer(){
+
+    }
 
     public Transfer(int transferId, int senderId, int receiverId, BigDecimal transferAmount){
         this.transferId = transferId;
@@ -18,6 +21,10 @@ public class Transfer {
         this.receiverId = receiverId;
         this.transferAmount = transferAmount;
     }
+
+    public Status getStatus() {return status;}
+
+    public void setStatus(Status status) {this.status = status;}
 
     public int getTransferId() {
         return transferId;

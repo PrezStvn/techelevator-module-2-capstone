@@ -1,10 +1,7 @@
 package com.techelevator.tenmo.dao.account;
 
-import com.techelevator.tenmo.TenmoApplication;
 import com.techelevator.tenmo.exception.DaoException;
 import com.techelevator.tenmo.model.Account;
-import org.apache.logging.log4j.LogManager;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
@@ -12,17 +9,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class JdbcAccountDao implements AccountDao{
 
-
     private JdbcTemplate jdbcTemplate;
-
-
 
     public JdbcAccountDao(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -50,7 +43,7 @@ public class JdbcAccountDao implements AccountDao{
 
 
     public Account findByAccountId(int accountId){
-        String sql = "SELECT user_id, balance FROM account WHERE account_id = ?;";
+        String sql = "SELECT user_id, balance FROM account WHERE account_id=?;";
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, accountId);
         if (rowSet.next()){
             return mapRowToAccount(rowSet);
@@ -59,9 +52,9 @@ public class JdbcAccountDao implements AccountDao{
     }
 
     @Override
-    public Account get(int accountId) {
+    public Account getBalance(int accountId) {
         Account account = null;
-        String sql = "SELECT account_id, user_id, balance FROM account WHERE account_id = ?;";
+        String sql = "SELECT account_id, balance FROM account WHERE account_id = ?";
 
         try {
             SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId);
@@ -78,34 +71,35 @@ public class JdbcAccountDao implements AccountDao{
 
     // TODO fix
     @Override
-    public Account create(int userId, BigDecimal balance) {
-        String sql = "INSERT INTO account (user_id, balance) VALUES (?, ?) RETURNING account_id;";
-        Integer newAccountId = null;
+    public Account create(Account account) {
+        Account newAccount = null;
+        String sql = "INSERT INTO account (user_id, balance) VALUES (?, ?) RETURNING account_id";
         try {
-            newAccountId = jdbcTemplate.queryForObject(sql, Integer.class, userId, balance);
-        } catch (DataAccessException e) {
-            throw new DaoException("Failed to create account for user " + userId, e);
+            int newAccountId = jdbcTemplate.queryForObject(sql, int.class,
+                    account.getUserId(), account.getBalance());
+
+            newAccount = findByAccountId(newAccountId);
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new DaoException("Unable to connect to server or database", e);
+        } catch (BadSqlGrammarException e) {
+            throw new DaoException("SQL syntax error", e);
+        } catch (DataIntegrityViolationException e) {
+            throw new DaoException("Data integrity violation", e);
         }
-        if (newAccountId == null) {
-            throw new DaoException("Failed to create account for user " + userId + ": no account ID returned");
-        }
-        return get(newAccountId);
+        return newAccount;
     }
 
     @Override
-    public Account update(Account account, int userId) {
+    public Account update(Account account) {
         Account newAccount = null;
-        String sql = "UPDATE account SET balance = ? WHERE account_id = ? AND user_id = ?;";
-
-        int accountId = account.getAccountId();
-        BigDecimal balance = account.getBalance();
+        String sql = "UPDATE account SET balance = ?, user_id = ? WHERE account_id=?";
 
         try {
-            int rowsAffected = jdbcTemplate.update(sql, balance, accountId, userId);
+            int rowsAffected = jdbcTemplate.update(sql, account.getBalance(), account.getUserId(), account.getAccountId());
             if(rowsAffected == 0){
                 throw new DaoException("ERROR updating account. Account not updated");
             } else {
-                newAccount = findByAccountId(accountId);
+                newAccount = findByAccountId(account.getAccountId());
             }
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException("Unable to connect to server or database", e);
@@ -121,7 +115,7 @@ public class JdbcAccountDao implements AccountDao{
 
     @Override
     public void delete(int accountId) {
-        String sql = "DELETE FROM account WHERE account_id = ?;";
+        String sql = "DELETE FROM account WHERE account_id = ?";
 
         try {
             jdbcTemplate.update(sql, accountId);

@@ -44,7 +44,7 @@ public class JdbcTransferDao implements TransferDao {
 
         return transfers;
     }
-// 7. 7. As an authenticated user of the system, I need to be able to retrieve the details of any transfer based upon the transfer ID.
+    // 7. 7. As an authenticated user of the system, I need to be able to retrieve the details of any transfer based upon the transfer ID.
     @Override
     public List<Transfer> getTransfersForUser(int userId) {
         List<Transfer> transfers = new ArrayList<>();
@@ -62,7 +62,7 @@ public class JdbcTransferDao implements TransferDao {
         }
         return transfers;
     }
-// tODO may need to implement 3. A transfer includes the usernames of the from and to users and the amount of TE Bucks.
+    // tODO may need to implement 3. A transfer includes the usernames of the from and to users and the amount of TE Bucks.
     // TODO 4. The receiver's account balance is increased by the amount of the transfer.
 //   TODO 5. The sender's account balance is decreased by the amount of the transfer.
     @Override
@@ -74,7 +74,7 @@ public class JdbcTransferDao implements TransferDao {
                 "RETURNING transfer_id";
         Account account = new Account();
         int senderAccount = transfer.getSenderId();
-       // int receiverAccount = transfer.getReceiverId();
+        // int receiverAccount = transfer.getReceiverId();
 // step 5.2: I must not be allowed to send money to myself.
         if (senderId == receiverId) {
             throw new IllegalArgumentException("Sender and receiver cannot be the same");

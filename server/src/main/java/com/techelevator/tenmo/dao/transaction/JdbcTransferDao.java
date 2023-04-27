@@ -8,11 +8,13 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class JdbcTransferDao implements TransferDao {
 
     private JdbcTemplate jdbcTemplate;
@@ -68,6 +70,7 @@ public class JdbcTransferDao implements TransferDao {
         String sql = "INSERT INTO transfers (sender_id, receiver_id, amount, status) " +
                 "VALUES (?, ?, ?, 'Approved') " +
                 "RETURNING transfer_id";
+        Account account = new Account();
 
         if (senderId == receiverId) {
             throw new IllegalArgumentException("Sender and receiver cannot be the same");
@@ -75,7 +78,8 @@ public class JdbcTransferDao implements TransferDao {
         if (transferAmount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Transfer amount must be greater than zero");
         }
-        if (Account.getBalance().compareTo(transferAmount) < 0) {
+        // TODO may have to fix this to sender account somehow
+        if (account.getBalance().compareTo(transferAmount) < 0) {
             throw new IllegalArgumentException("Insufficient funds");
         }
 

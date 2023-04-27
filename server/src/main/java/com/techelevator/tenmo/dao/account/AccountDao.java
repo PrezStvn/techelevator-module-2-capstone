@@ -8,7 +8,7 @@ import java.util.List;
 public interface AccountDao {
     List<Account> getAllAccounts();
 
-    int findByAccountId(String username);
+    Account findByAccountId(int accountId);
 
 
 
@@ -16,10 +16,10 @@ public interface AccountDao {
 
     Account get(int accountId);
 
-    boolean create(int userId, BigDecimal balance);
+    Integer create(int userId, BigDecimal balance);
 
     Account update(Account account, int userId);
 
-    Void delete(int accountId);
+    void delete(int accountId);
 
 }

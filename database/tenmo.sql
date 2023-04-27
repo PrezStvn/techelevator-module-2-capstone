@@ -1,8 +1,8 @@
 BEGIN TRANSACTION;
 
-DROP TABLE IF EXISTS tenmo_user, account;
+DROP TABLE IF EXISTS transfer, tenmo_user, account;
 
-DROP SEQUENCE IF EXISTS seq_user_id, seq_account_id;
+DROP SEQUENCE IF EXISTS seq_transfer_id, seq_user_id, seq_account_id;
 
 -- Sequence to start user_id values at 1001 instead of 1
 CREATE SEQUENCE seq_user_id
@@ -37,8 +37,12 @@ CREATE SEQUENCE seq_transfer_id
   INCREMENT BY 1
   START WITH 3001
   NO MAXVALUE;
+  
+CREATE TYPE status AS ENUM ('PENDING', 'APPROVED', 'DENIED');
+  
 CREATE TABLE transfer (
 	transfer_id int NOT NULL DEFAULT nextval('seq_transfer_id'),
+	transfer_status status NOT NULL,	
 	sender_id int NOT NULL,
 	receiver_id int NOT NULL,
 	-- bigDecimal
@@ -49,5 +53,4 @@ CREATE TABLE transfer (
 	CONSTRAINT FK_receiver_account FOREIGN KEY
 	(receiver_id) references account(account_id)
 );
-
 COMMIT;

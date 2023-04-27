@@ -9,6 +9,7 @@ public class Transfer {
     private BigDecimal transferAmount;
     // approved or not
     private enum Status {PENDING, APPROVED, DENIED};
+    private Status status = Status.PENDING;
 
     public Status getStatus() {
         return status;
@@ -17,8 +18,6 @@ public class Transfer {
     public void setStatus(Status status) {
         this.status = status;
     }
-
-    private Status status = Status.PENDING;
 
     public Transfer(){
 

@@ -38,7 +38,7 @@ public class AccountController {
     }
 
     @RequestMapping(path = "/{id}", method = RequestMethod.PUT)
-    @PreAuthorize("hasAnyRole('ADMIN', 'CREATOR')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'CREATOR')")
     public Account update(@Valid @RequestBody Account account, @PathVariable int id) {
         Account updatedAccount = dao.update(account);
         if (updatedAccount == null) {

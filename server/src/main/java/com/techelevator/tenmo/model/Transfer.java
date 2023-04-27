@@ -11,14 +11,6 @@ public class Transfer {
     private enum Status {PENDING, APPROVED, DENIED};
     private Status status = Status.PENDING;
 
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
     public Transfer(){
 
     }
@@ -29,6 +21,10 @@ public class Transfer {
         this.receiverId = receiverId;
         this.transferAmount = transferAmount;
     }
+
+    public Status getStatus() {return status;}
+
+    public void setStatus(Status status) {this.status = status;}
 
     public int getTransferId() {
         return transferId;

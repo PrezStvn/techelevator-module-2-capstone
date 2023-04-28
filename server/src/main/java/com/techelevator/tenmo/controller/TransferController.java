@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 
 
 @RestController
-@RequestMapping("/transfer")
+@RequestMapping("/transfers")
 @PreAuthorize("isAuthenticated()")
 public class TransferController {
     private TransferDao dao;
@@ -22,8 +22,8 @@ public class TransferController {
     }
 // TODO need to implement transfer for user
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
-    public Transfer get(@PathVariable int transferId) {
-        Transfer transfer = dao.getTransfer(transferId);
+    public Transfer get(@PathVariable int id) {
+        Transfer transfer = dao.getTransfer(id);
         if (transfer == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transfer Not Found");
         } else return transfer;
@@ -31,7 +31,7 @@ public class TransferController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(path = "", method = RequestMethod.POST)
-    public Transfer create(@Valid @RequestParam int senderId, @Valid @RequestParam int receiverId, @Valid @RequestParam BigDecimal transferAmount) {
+    public Transfer create(@Valid @RequestParam int senderId, @Valid @RequestParam("receiverId") int receiverId, @Valid @RequestParam BigDecimal transferAmount) {
         return dao.createTransfer(senderId, receiverId, transferAmount);
     }
 

@@ -1,9 +1,10 @@
 BEGIN TRANSACTION;
+ROLLBACK
 
 DROP TABLE IF EXISTS transfer, tenmo_user, account;
 
 DROP SEQUENCE IF EXISTS seq_transfer_id, seq_user_id, seq_account_id;
-
+DROP TYPE IF EXISTS status;
 -- Sequence to start user_id values at 1001 instead of 1
 CREATE SEQUENCE seq_user_id
   INCREMENT BY 1
@@ -40,7 +41,7 @@ CREATE SEQUENCE seq_transfer_id
   
 CREATE TYPE status AS ENUM ('PENDING', 'APPROVED', 'DENIED');
   
-CREATE TABLE transfer (
+CREATE TABLE transfers (
 	transfer_id int NOT NULL DEFAULT nextval('seq_transfer_id'),
 	transfer_status status NOT NULL,	
 	sender_id int NOT NULL,

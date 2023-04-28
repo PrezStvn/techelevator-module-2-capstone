@@ -70,7 +70,7 @@ public class JdbcTransferDao implements TransferDao {
     @Override
     public Transfer getTransfer(int transferId) {
         Transfer transfer = null;
-        String sql = "SELECT transfer_id, sender_id, receiver_id, transfer_amount FROM transfer WHERE transfer_id=?";
+        String sql = "SELECT transfer_id, sender_id, receiver_id, transfer_amount FROM transfers WHERE transfer_id=?";
         try {
             SqlRowSet results = jdbcTemplate.queryForRowSet(sql, transferId);
             if (results.next()) {
@@ -86,40 +86,35 @@ public class JdbcTransferDao implements TransferDao {
     // TODO see if receiver id exist
     @Override
     public Transfer createTransfer(int senderId, int receiverId, BigDecimal transferAmount) {
+        if(isValidTransfer(senderId, receiverId, transferAmount));
 // 5.8. A Sending Transfer has an initial status of *Approved*.
         Transfer newTransfer = null;
-        String sql = "INSERT INTO transfers (sender_id, receiver_id, amount, status) " +
-                "VALUES (?, ?, ?, 'Approved') " +
+        String sql = "INSERT INTO transfers (sender_id, receiver_id, transfer_amount, transfer_status) " +
+                "VALUES (?, ?, ?, 'APPROVED') " +
                 "RETURNING transfer_id";
 
         // int receiverAccount = transfer.getReceiverId();
 // step 5.2: I must not be allowed to send money to myself.
 
-        Account updatedAccount = accountDao.findByAccountId(senderId);
-        if (senderId == receiverId) {
-            throw new IllegalArgumentException("Sender and receiver cannot be the same");
-        }
-        // 5.7. I can't send a zero or negative amount.
-        if (transferAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Transfer amount must be greater than zero");
-        }
-//  5.6. I can't send more TE Bucks than I have in my account.
-        if (updatedAccount.getBalance().compareTo(transferAmount) < 0) {
-            throw new IllegalArgumentException("Insufficient funds");
-        }
+        Account senderAccount = accountDao.findByAccountId(senderId);
+        Account receiverAccount = accountDao.findByAccountId(receiverId);
+
+
 
         // Update sender's account balance
-        updatedAccount.setBalance(updatedAccount.getBalance().subtract(transferAmount));
-        accountDao.update(updatedAccount);
+        senderAccount.setBalance(senderAccount.getBalance().subtract(transferAmount));
+
 
         // Update receiver's account balance
-        Account updatedReceiverAccount = accountDao.findByAccountId(receiverId);
-        updatedAccount.setBalance(updatedAccount.getBalance().add(transferAmount));
-        accountDao.update(updatedReceiverAccount);
+
+        receiverAccount.setBalance(receiverAccount.getBalance().add(transferAmount));
+
 
         try {
             Integer transferId = jdbcTemplate.queryForObject(sql, Integer.class, senderId, receiverId, transferAmount);
             newTransfer = getTransfer(transferId);
+            accountDao.update(senderAccount);
+            accountDao.update(receiverAccount);
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException("Unable to connect to server or database", e);
         } catch (BadSqlGrammarException e) {
@@ -159,6 +154,30 @@ public class JdbcTransferDao implements TransferDao {
         return newTransfer;
     }
 
+    private boolean isValidTransfer(int senderId, int receiverId, BigDecimal transferAmount) {
+        Account senderAccount = accountDao.findByAccountId(senderId);
+        Account receiverAccount = accountDao.findByAccountId(receiverId);
+
+        if (senderId == receiverId) {
+            throw new IllegalArgumentException("Sender and receiver cannot be the same");
+        }
+        if(accountDao.findByAccountId(senderId) == null) {
+            throw new IllegalArgumentException("Origin account does not exist");
+        }
+        if(accountDao.findByAccountId(receiverId) == null) {
+            throw new IllegalArgumentException("Target account does not exist");
+        }
+        // 5.7. I can't send a zero or negative amount.
+        if (transferAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Transfer amount must be greater than zero");
+        }
+//  5.6. I can't send more TE Bucks than I have in my account.
+        if (senderAccount.getBalance().compareTo(transferAmount) < 0) {
+            throw new IllegalArgumentException("Insufficient funds");
+        }
+
+        return true;
+    }
 
     private Transfer mapRowToTransfer(SqlRowSet rs) {
         Transfer transfer = new Transfer();

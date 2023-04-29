@@ -20,7 +20,7 @@ public class JdbcAccountDao implements AccountDao{
     private JdbcTemplate jdbcTemplate;
     private UserDao userDao;
 
-    public JdbcAccountDao(JdbcTemplate jdbcTemplate) {
+    public JdbcAccountDao(JdbcTemplate jdbcTemplate, UserDao userDao) {
         this.jdbcTemplate = jdbcTemplate;
         this.userDao = userDao;
     }
@@ -28,7 +28,7 @@ public class JdbcAccountDao implements AccountDao{
     @Override
     public List<Account> getAllAccounts() {
         List<Account> accounts = new ArrayList<>();
-        String sql = "SELECT account_id, user_id, balance FROM account";
+        String sql = "SELECT username FROM tenmo_user AS tu join account on ";
 
         try {
             SqlRowSet results = jdbcTemplate.queryForRowSet(sql);

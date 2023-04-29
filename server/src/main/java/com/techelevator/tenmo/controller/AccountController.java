@@ -2,7 +2,11 @@ package com.techelevator.tenmo.controller;
 
 import com.techelevator.tenmo.dao.account.AccountDao;
 
+import com.techelevator.tenmo.dao.user.UserDao;
+import com.techelevator.tenmo.exception.DaoException;
 import com.techelevator.tenmo.model.Account;
+import com.techelevator.tenmo.model.User;
+import com.techelevator.tenmo.service.AccountServiceLogic;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -10,20 +14,41 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("/account")
 @PreAuthorize("isAuthenticated()")
 public class AccountController {
     private AccountDao dao;
+    private UserDao userDao;
+    private AccountServiceLogic logic ;
 
-    public AccountController(AccountDao accountDao) {
+
+    public AccountController(AccountDao accountDao, UserDao userDao) {
         this.dao = accountDao;
+        this.userDao = userDao;
+        logic = new AccountServiceLogic(userDao, accountDao);
     }
 
+    @RequestMapping(path = "s", method = RequestMethod.GET)
+    public List<String> listOfUsers() {
+        List<String> users = new ArrayList<>();
+        for(User user : userDao.findAll()) {
+            users.add(user.getUsername());
+        }
+        return users;
+    }
+    //TODO: may want to consider creating custom exception and throwing it from the logic service;
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
-    public Account get(@PathVariable int id) {
-        Account account = dao.findByAccountId(id);
+    public Account get(@PathVariable int id, Principal principal) {
+        if(!(logic.canIGet(principal, id))) {
+            throw new DaoException("You do not have access to this account");
+        }
+            Account account = dao.findByAccountId(id);
+
         if (account == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account Not Found");
         } else return account;

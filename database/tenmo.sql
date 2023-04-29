@@ -1,7 +1,7 @@
 BEGIN TRANSACTION;
 ROLLBACK
 
-DROP TABLE IF EXISTS transfer, tenmo_user, account;
+DROP TABLE IF EXISTS account, transfers, tenmo_user;
 
 DROP SEQUENCE IF EXISTS seq_transfer_id, seq_user_id, seq_account_id;
 DROP TYPE IF EXISTS status;
@@ -13,7 +13,7 @@ CREATE SEQUENCE seq_user_id
 
 CREATE TABLE tenmo_user (
 	user_id int NOT NULL DEFAULT nextval('seq_user_id'),
-	username varchar(50) NOT NULL,
+	username varchar(50) UNIQUE NOT NULL,
 	password_hash varchar(200) NOT NULL,
 	CONSTRAINT PK_tenmo_user PRIMARY KEY (user_id),
 	CONSTRAINT UQ_username UNIQUE (username)

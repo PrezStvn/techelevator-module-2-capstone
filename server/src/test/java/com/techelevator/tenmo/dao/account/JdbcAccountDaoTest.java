@@ -23,7 +23,7 @@ public class JdbcAccountDaoTest extends BaseDaoTests {
 
     @Before
     public void setup() {
-        sut = new JdbcAccountDao((JdbcTemplate) dataSource);
+
         testAccount = new Account(3001,4000,BigDecimal.valueOf(5000));
     }
 

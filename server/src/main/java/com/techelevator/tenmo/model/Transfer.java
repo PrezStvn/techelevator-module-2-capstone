@@ -12,6 +12,8 @@ public class Transfer {
     private enum Status {PENDING, APPROVED, DENIED};
     private Status status = Status.PENDING;
 
+
+
     public Transfer(){}
 
     public Transfer(int transferId, int senderId, int receiverId, BigDecimal transferAmount){
@@ -51,5 +53,17 @@ public class Transfer {
 
     public void setTransferAmount(BigDecimal transferAmount) {
         this.transferAmount = transferAmount;
+    }
+
+    public Status getStatus() {return status;}
+
+    public void setStatus(int i) {
+        switch(i) {
+            case 1: this.status = Status.PENDING;
+            break;
+            case 2: this.status = Status.APPROVED;
+            break;
+            case 3: this.status = Status.DENIED;
+        }
     }
 }

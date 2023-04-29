@@ -45,6 +45,25 @@ public class JdbcAccountDao implements AccountDao{
         return accounts;
     }
 
+    @Override
+    public List<Account> getAllMyAccounts(int id) {
+        List<Account> accounts = new ArrayList<>();
+        String sql = "SELECT account_id, user_id, balance FROM account WHERE user_id = ?";
+
+        try {
+            SqlRowSet results = jdbcTemplate.queryForRowSet(sql, id);
+            while (results.next()){
+                Account account = mapRowToAccount(results);
+                accounts.add(account);
+            }
+        } catch (CannotGetJdbcConnectionException e) {
+            throw new DaoException("Unable to connect to server or database", e);
+        } catch (BadSqlGrammarException e) {
+            throw new DaoException("SQL syntax error", e);
+        }
+        return accounts;
+    }
+
 @Override
     public Account findByAccountId(int accountId){
         String sql = "SELECT account_id, user_id, balance FROM account WHERE account_id = ?;";

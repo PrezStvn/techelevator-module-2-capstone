@@ -2,6 +2,7 @@ package com.techelevator.tenmo.controller;
 
 import com.techelevator.tenmo.dao.transaction.TransferDao;
 import com.techelevator.tenmo.model.Transfer;
+import com.techelevator.tenmo.service.TransferServiceLogic;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.math.BigDecimal;
 @PreAuthorize("isAuthenticated()")
 public class TransferController {
     private TransferDao dao;
+    private TransferServiceLogic transferLogic;
 
     public TransferController(TransferDao transferDao) {
         this.dao = transferDao;

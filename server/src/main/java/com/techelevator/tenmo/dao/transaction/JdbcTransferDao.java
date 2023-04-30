@@ -3,7 +3,9 @@ package com.techelevator.tenmo.dao.transaction;
 import com.techelevator.tenmo.dao.account.AccountDao;
 import com.techelevator.tenmo.exception.DaoException;
 import com.techelevator.tenmo.model.Account;
+import com.techelevator.tenmo.model.Status;
 import com.techelevator.tenmo.model.Transfer;
+import com.techelevator.tenmo.service.TransferServiceLogic;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
@@ -20,6 +22,7 @@ public class JdbcTransferDao implements TransferDao {
 
     private JdbcTemplate jdbcTemplate;
     private AccountDao accountDao;
+
 
     public JdbcTransferDao(JdbcTemplate jdbcTemplate, AccountDao accountDao) {
 
@@ -96,25 +99,14 @@ public class JdbcTransferDao implements TransferDao {
         // int receiverAccount = transfer.getReceiverId();
 // step 5.2: I must not be allowed to send money to myself.
 
-        Account senderAccount = accountDao.findByAccountId(senderId);
-        Account receiverAccount = accountDao.findByAccountId(receiverId);
-
-
-
-        // Update sender's account balance
-        senderAccount.setBalance(senderAccount.getBalance().subtract(transferAmount));
-
-
-        // Update receiver's account balance
-
-        receiverAccount.setBalance(receiverAccount.getBalance().add(transferAmount));
 
 
         try {
             Integer transferId = jdbcTemplate.queryForObject(sql, Integer.class, senderId, receiverId, transferAmount);
             newTransfer = getTransfer(transferId);
-            accountDao.update(senderAccount);
-            accountDao.update(receiverAccount);
+            if(newTransfer.getStatus() == Status.APPROVED) {
+                transferApproved(senderId, receiverId, transferAmount);
+            }
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException("Unable to connect to server or database", e);
         } catch (BadSqlGrammarException e) {
@@ -124,6 +116,18 @@ public class JdbcTransferDao implements TransferDao {
         }
 
         return newTransfer;
+    }
+
+    public boolean transferApproved(int fromAcc, int toAcc, BigDecimal transferAmount) {
+        Account senderAccount = accountDao.findByAccountId(fromAcc);
+        Account receiverAccount = accountDao.findByAccountId(toAcc);
+        // Update sender's account balance
+        senderAccount.setBalance(senderAccount.getBalance().subtract(transferAmount));
+        // Update receiver's account balance
+        receiverAccount.setBalance(receiverAccount.getBalance().add(transferAmount));
+        accountDao.update(senderAccount);
+        accountDao.update(receiverAccount);
+        return true;
     }
 
     @Override
@@ -142,6 +146,7 @@ public class JdbcTransferDao implements TransferDao {
                 throw new DaoException("ERROR updating reservation. Reservation not updated");
             } else {
                 newTransfer = (Transfer) getTransfersForUser(transferId);
+                if(newTransfer.getStatus() == Status.APPROVED) transferApproved(newTransfer.getSenderId(), newTransfer.getReceiverId(), newTransfer.getTransferAmount());
             }
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException("Unable to connect to server or database", e);
@@ -150,7 +155,6 @@ public class JdbcTransferDao implements TransferDao {
         } catch (DataIntegrityViolationException e) {
             throw new DaoException("Data integrity violation", e);
         }
-
         return newTransfer;
     }
 

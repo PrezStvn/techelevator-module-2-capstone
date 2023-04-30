@@ -1,6 +1,8 @@
 package com.techelevator.tenmo.controller;
 
+import com.techelevator.tenmo.dao.account.AccountDao;
 import com.techelevator.tenmo.dao.transaction.TransferDao;
+import com.techelevator.tenmo.dao.user.UserDao;
 import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.service.TransferServiceLogic;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.security.Principal;
 
 
 @RestController
@@ -17,10 +20,14 @@ import java.math.BigDecimal;
 @PreAuthorize("isAuthenticated()")
 public class TransferController {
     private TransferDao dao;
+    private AccountDao accountDao;
+    private UserDao userDao;
     private TransferServiceLogic transferLogic;
 
-    public TransferController(TransferDao transferDao) {
+    public TransferController(TransferDao transferDao, AccountDao accountDao, UserDao userDao) {
         this.dao = transferDao;
+        this.accountDao = accountDao;
+        this.userDao = userDao;
     }
 // TODO need to implement transfer for user
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
@@ -33,8 +40,9 @@ public class TransferController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(path = "", method = RequestMethod.POST)
-    public Transfer create(@Valid @RequestParam int senderId, @Valid @RequestParam("receiverId") int receiverId, @Valid @RequestParam BigDecimal transferAmount) {
-        return dao.createTransfer(senderId, receiverId, transferAmount);
+    public Transfer create(@Valid @RequestParam int senderId, @Valid @RequestParam("receiverId") int receiverId, @Valid @RequestParam BigDecimal transferAmount, Principal principal) {
+        transferLogic = new TransferServiceLogic(dao, accountDao, userDao);
+        return transferLogic.onCreateChecks(principal, senderId, receiverId, transferAmount);
     }
 
     @RequestMapping(path = "/{id}", method = RequestMethod.PUT)

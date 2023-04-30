@@ -99,8 +99,6 @@ public class JdbcTransferDao implements TransferDao {
         // int receiverAccount = transfer.getReceiverId();
 // step 5.2: I must not be allowed to send money to myself.
 
-
-
         try {
             Integer transferId = jdbcTemplate.queryForObject(sql, Integer.class, senderId, receiverId, transferAmount);
             newTransfer = getTransfer(transferId);

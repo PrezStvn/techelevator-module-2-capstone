@@ -16,8 +16,7 @@ public class TransferServiceLogic {
     private UserDao userDao;
     private AccountDao accountDao;
     private TransferDao transferDao;
-    private Transfer transfer;
-    private User principalUser;
+
     /*
     * TODO:
     *  Logic: intake Authorizer(Principal principal, int senderId, int receiverId, BigDecimal transferAmount)
@@ -32,30 +31,27 @@ public class TransferServiceLogic {
     *
     *
      */
-    public TransferServiceLogic(UserDao userDao, AccountDao accountDao, TransferDao transferDao, Principal principal, int fromAcc, int toAcc, BigDecimal transferAmount) {
+    public TransferServiceLogic( TransferDao transferDao, AccountDao accountDao, UserDao userDao) {
         this.userDao = userDao;
         this.accountDao = accountDao;
         this.transferDao = transferDao;
-        this.principalUser = userDao.findByUsername(principal.getName());
+
+
+    }
+
+
+    public Transfer onCreateChecks(Principal principal,  int fromAcc, int toAcc, BigDecimal transferAmount){
+        Transfer transfer = new Transfer();
         transfer.setSenderId(fromAcc);
         transfer.setReceiverId(toAcc);
         transfer.setTransferAmount(transferAmount);
-
-    }
-    public TransferServiceLogic(UserDao userDao, AccountDao accountDao, TransferDao transferDao, Principal principal, Transfer transfer) {
-        this.userDao = userDao;
-        this.accountDao = accountDao;
-        this.transferDao = transferDao;
-        this.principalUser = userDao.findByUsername(principal.getName());
-        this.transfer = transfer;
-    }
-
-    public Transfer onCreateChecks(){
         isValidTransfer(transfer.getSenderId(), transfer.getReceiverId(), transfer.getTransferAmount());
-        isTransferSentOrRequested();
+        transfer.setStatus(isTransferSentOrRequested(principal, fromAcc, toAcc));
+        if(transfer.getStatus() == Status.DENIED) throw new BizLogicException("You cannot request a transfer between these accounts.");
         transferAmountChecker(transfer.getTransferAmount());
         if(transfer.getStatus() == Status.APPROVED) {
-            preCompletionCheck();
+            preCompletionCheck(transfer);
+            transferDao.updateTransfer(transfer, transfer.getTransferId());
 
         }
 
@@ -88,19 +84,21 @@ public class TransferServiceLogic {
         return true;
     }
 
-    public void isTransferSentOrRequested() {
+    public int isTransferSentOrRequested(Principal principal, int senderId, int receiverId) {
+        User principalUser = userDao.findByUsername(principal.getName());
         List<Account> principalAccounts = accountDao.getAllMyAccounts(principalUser.getId());
 
         for(Account acc : principalAccounts) {
-            if(acc.getAccountId() == transfer.getSenderId()) {
-                transfer.setStatus(2);
-            } else if(acc.getAccountId() == transfer.getReceiverId())
+            if(acc.getAccountId() == receiverId) {
+                return 1;
+            } else if(acc.getAccountId() == senderId)
             {
-                transfer.setStatus(1);
+                return 2;
             } else {
                 throw new BizLogicException("Transfer not created: Neither account belongs to principal, please enter a valid account");
             }
         }
+        return 3;
     }
 
 
@@ -110,10 +108,10 @@ public class TransferServiceLogic {
         return true;
     }
 
-    public boolean preCompletionCheck(){
+    public boolean preCompletionCheck(Transfer transfer){
         Account senderAccount = accountDao.findByAccountId(transfer.getSenderId());
         BigDecimal senderBalance = senderAccount.getBalance();
-        if(transfer.getTransferAmount().compareTo(senderBalance) > 0) return false;
+        if(transfer.getTransferAmount().compareTo(senderBalance) > 0) throw new BizLogicException("Not enough funds at present to complete transfer.");
         return true;
     }
 

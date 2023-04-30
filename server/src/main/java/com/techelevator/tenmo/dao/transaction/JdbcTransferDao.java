@@ -88,8 +88,7 @@ public class JdbcTransferDao implements TransferDao {
     }
     // TODO see if receiver id exist
     @Override
-    public Transfer createTransfer(int senderId, int receiverId, BigDecimal transferAmount) {
-        if(isValidTransfer(senderId, receiverId, transferAmount));
+    public Transfer createTransfer(int senderId, int receiverId, BigDecimal transferAmount)  {
 // 5.8. A Sending Transfer has an initial status of *Approved*.
         Transfer newTransfer = null;
         String sql = "INSERT INTO transfers (sender_id, receiver_id, transfer_amount, transfer_status) " +
@@ -156,30 +155,6 @@ public class JdbcTransferDao implements TransferDao {
         return newTransfer;
     }
 
-    private boolean isValidTransfer(int senderId, int receiverId, BigDecimal transferAmount) {
-        Account senderAccount = accountDao.findByAccountId(senderId);
-        Account receiverAccount = accountDao.findByAccountId(receiverId);
-
-        if (senderId == receiverId) {
-            throw new IllegalArgumentException("Sender and receiver cannot be the same");
-        }
-        if(accountDao.findByAccountId(senderId) == null) {
-            throw new IllegalArgumentException("Origin account does not exist");
-        }
-        if(accountDao.findByAccountId(receiverId) == null) {
-            throw new IllegalArgumentException("Target account does not exist");
-        }
-        // 5.7. I can't send a zero or negative amount.
-        if (transferAmount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Transfer amount must be greater than zero");
-        }
-//  5.6. I can't send more TE Bucks than I have in my account.
-        if (senderAccount.getBalance().compareTo(transferAmount) < 0) {
-            throw new IllegalArgumentException("Insufficient funds");
-        }
-
-        return true;
-    }
 
     private Transfer mapRowToTransfer(SqlRowSet rs) {
         Transfer transfer = new Transfer();

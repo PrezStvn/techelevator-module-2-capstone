@@ -73,7 +73,7 @@ public class JdbcTransferDao implements TransferDao {
     @Override
     public Transfer getTransfer(int transferId) {
         Transfer transfer = null;
-        String sql = "SELECT transfer_id, sender_id, receiver_id, transfer_amount FROM transfers WHERE transfer_id=?";
+        String sql = "SELECT transfer_id, sender_id, receiver_id, transfer_amount, transfer_status FROM transfers WHERE transfer_id=?";
         try {
             SqlRowSet results = jdbcTemplate.queryForRowSet(sql, transferId);
             if (results.next()) {
@@ -88,18 +88,15 @@ public class JdbcTransferDao implements TransferDao {
     }
     // TODO see if receiver id exist
     @Override
-    public Transfer createTransfer(int senderId, int receiverId, BigDecimal transferAmount)  {
-// 5.8. A Sending Transfer has an initial status of *Approved*.
+    public Transfer createTransfer(int senderId, int receiverId, BigDecimal transferAmount, Status status)  {
+
         Transfer newTransfer = null;
-        String sql = "INSERT INTO transfers (sender_id, receiver_id, transfer_amount, transfer_status) " +
-                "VALUES (?, ?, ?, 'APPROVED') " +
+        String sql = "INSERT INTO transfers (transfer_status, sender_id, receiver_id, transfer_amount) " +
+                "VALUES (?, ?, ?, ?) " +
                 "RETURNING transfer_id";
 
-        // int receiverAccount = transfer.getReceiverId();
-// step 5.2: I must not be allowed to send money to myself.
-
         try {
-            Integer transferId = jdbcTemplate.queryForObject(sql, Integer.class, senderId, receiverId, transferAmount);
+            Integer transferId = jdbcTemplate.queryForObject(sql, Integer.class,  status.toString(), senderId, receiverId, transferAmount);
             newTransfer = getTransfer(transferId);
             if(newTransfer.getStatus() == Status.APPROVED) {
                 transferApproved(senderId, receiverId, transferAmount);
@@ -115,7 +112,7 @@ public class JdbcTransferDao implements TransferDao {
         return newTransfer;
     }
 
-    public boolean transferApproved(int fromAcc, int toAcc, BigDecimal transferAmount) {
+    public void transferApproved(int fromAcc, int toAcc, BigDecimal transferAmount) {
         Account senderAccount = accountDao.findByAccountId(fromAcc);
         Account receiverAccount = accountDao.findByAccountId(toAcc);
         // Update sender's account balance
@@ -124,13 +121,13 @@ public class JdbcTransferDao implements TransferDao {
         receiverAccount.setBalance(receiverAccount.getBalance().add(transferAmount));
         accountDao.update(senderAccount);
         accountDao.update(receiverAccount);
-        return true;
+        System.out.println("accounts updated after transfer");
     }
 
     @Override
-    public Transfer updateTransfer(Transfer transfer, int transferId) {
+    public Transfer updateTransfer(Transfer transfer) {
         Transfer newTransfer = null;
-        String sql = "UPDATE transfer SET sender_id=?, receiver_id=?, transfer_amount=? WHERE transfer_id=?";
+        String sql = "UPDATE transfer SET transfer_status = ? WHERE transfer_id=?";
 
 
         int senderId = transfer.getSenderId();
@@ -138,11 +135,11 @@ public class JdbcTransferDao implements TransferDao {
         BigDecimal transferAmount = transfer.getTransferAmount();
 
         try {
-            int rowsAffected = jdbcTemplate.update(sql, senderId, receiverId, transferAmount, transferId);
+            int rowsAffected = jdbcTemplate.update(sql, transfer.getStatus(), transfer.getTransferId());
             if(rowsAffected == 0){
                 throw new DaoException("ERROR updating reservation. Reservation not updated");
             } else {
-                newTransfer = (Transfer) getTransfersForUser(transferId);
+                newTransfer = (Transfer) getTransfersForUser(transfer.getTransferId());
                 if(newTransfer.getStatus() == Status.APPROVED) transferApproved(newTransfer.getSenderId(), newTransfer.getReceiverId(), newTransfer.getTransferAmount());
             }
         } catch (CannotGetJdbcConnectionException e) {
@@ -162,6 +159,7 @@ public class JdbcTransferDao implements TransferDao {
         transfer.setSenderId(rs.getInt("sender_id"));
         transfer.setReceiverId(rs.getInt("receiver_id"));
         transfer.setTransferAmount(rs.getBigDecimal("transfer_amount"));
+        transfer.setStatus(Status.valueOf(rs.getString("transfer_status")));
         return transfer;
     }
 }

@@ -1,5 +1,7 @@
 package com.techelevator.tenmo.model;
 
+import org.springframework.data.relational.core.mapping.Column;
+
 import java.math.BigDecimal;
 
 public class Transfer {
@@ -8,17 +10,19 @@ public class Transfer {
     private int receiverId;
     private BigDecimal transferAmount;
     // approved or not
-    private Status status = Status.PENDING;
+
+    private Status status;
 
 
 
     public Transfer(){}
 
-    public Transfer(int transferId, int senderId, int receiverId, BigDecimal transferAmount){
+    public Transfer(int transferId, int senderId, int receiverId, BigDecimal transferAmount, Status status){
         this.transferId = transferId;
         this.senderId = senderId;
         this.receiverId = receiverId;
         this.transferAmount = transferAmount;
+        this.status = status;
     }
 
     public int getTransferId() {
@@ -55,13 +59,7 @@ public class Transfer {
 
     public Status getStatus() {return status;}
 
-    public void setStatus(int i) {
-        switch(i) {
-            case 1: this.status = Status.PENDING;
-            break;
-            case 2: this.status = Status.APPROVED;
-            break;
-            case 3: this.status = Status.DENIED;
-        }
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }

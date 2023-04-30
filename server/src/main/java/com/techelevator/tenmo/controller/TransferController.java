@@ -28,11 +28,12 @@ public class TransferController {
         this.dao = transferDao;
         this.accountDao = accountDao;
         this.userDao = userDao;
+        transferLogic = new TransferServiceLogic(transferDao, accountDao, userDao);
     }
 // TODO need to implement transfer for user
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
-    public Transfer get(@PathVariable int id) {
-        Transfer transfer = dao.getTransfer(id);
+    public Transfer get(@PathVariable int id, Principal principal) {
+        Transfer transfer = transferLogic.onGetChecks(principal, id);
         if (transfer == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transfer Not Found");
         } else return transfer;
@@ -41,17 +42,15 @@ public class TransferController {
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(path = "", method = RequestMethod.POST)
     public Transfer create(@Valid @RequestParam int senderId, @Valid @RequestParam("receiverId") int receiverId, @Valid @RequestParam BigDecimal transferAmount, Principal principal) {
-        transferLogic = new TransferServiceLogic(dao, accountDao, userDao);
         return transferLogic.onCreateChecks(principal, senderId, receiverId, transferAmount);
     }
 
-    @RequestMapping(path = "/{id}", method = RequestMethod.PUT)
-    public Transfer update(@Valid @RequestBody Transfer transfer, @PathVariable int transferId) {
-        Transfer updatedTransfer = dao.updateTransfer(transfer, transferId);
+    @RequestMapping(path = "", method = RequestMethod.PUT)
+    public Transfer update(@Valid @RequestBody Transfer transfer, Principal principal) {
+        transferLogic.onUpdateChecks(principal, transfer);
+        Transfer updatedTransfer = dao.getTransfer(transfer.getTransferId());
         if (updatedTransfer == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transfer Not Found");
-        } else if(transfer.getTransferId() != transferId) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "path does not match transfer id");
         } else return updatedTransfer;
     }
 

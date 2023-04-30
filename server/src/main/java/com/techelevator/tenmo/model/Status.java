@@ -1,3 +1,5 @@
 package com.techelevator.tenmo.model;
 
-public enum Status  {PENDING, APPROVED, DENIED}
+public enum Status  {PENDING, APPROVED, DENIED;
+
+}

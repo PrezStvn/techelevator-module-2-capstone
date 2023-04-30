@@ -51,14 +51,37 @@ public class TransferServiceLogic {
         transferAmountChecker(transfer.getTransferAmount());
         if(transfer.getStatus() == Status.APPROVED) {
             preCompletionCheck(transfer);
-            transferDao.updateTransfer(transfer, transfer.getTransferId());
-
         }
 
-        transfer = transferDao.createTransfer(transfer.getSenderId(), transfer.getReceiverId(), transfer.getTransferAmount());
+        transfer = transferDao.createTransfer(transfer.getSenderId(), transfer.getReceiverId(), transfer.getTransferAmount(), transfer.getStatus());
 
         return transfer;
     }
+
+    public Transfer onGetChecks(Principal principal, int transferId) {
+        Transfer transfer = transferDao.getTransfer(transferId);
+        if(isSenderOrReciever(principal, transfer)) {
+            return transfer;
+        } else throw new BizLogicException("You have no business viewing transactions that do not involve you");
+    }
+
+    public boolean onUpdateChecks(Principal principal, Transfer transfer) {
+        if(isSender(principal, transfer)) {
+            transferDao.updateTransfer(transfer);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isSender(Principal principal, Transfer transfer) {
+        User principalUser = userDao.findByUsername(principal.getName());
+        List<Account> principalAccounts = accountDao.getAllMyAccounts(principalUser.getId());
+        for(Account acc : principalAccounts) {
+            if(acc.getAccountId() == transfer.getSenderId()) return true;
+        }
+        throw new BizLogicException("You cannot approve or deny this transfer, you are not the owner of the from account");
+    }
+
     private boolean isValidTransfer(int senderId, int receiverId, BigDecimal transferAmount) {
         Account senderAccount = accountDao.findByAccountId(senderId);
         Account receiverAccount = accountDao.findByAccountId(receiverId);
@@ -84,23 +107,29 @@ public class TransferServiceLogic {
         return true;
     }
 
-    public int isTransferSentOrRequested(Principal principal, int senderId, int receiverId) {
+    public Status isTransferSentOrRequested(Principal principal, int senderId, int receiverId) {
         User principalUser = userDao.findByUsername(principal.getName());
         List<Account> principalAccounts = accountDao.getAllMyAccounts(principalUser.getId());
 
         for(Account acc : principalAccounts) {
             if(acc.getAccountId() == receiverId) {
-                return 1;
+                return Status.PENDING;
             } else if(acc.getAccountId() == senderId)
             {
-                return 2;
-            } else {
-                throw new BizLogicException("Transfer not created: Neither account belongs to principal, please enter a valid account");
+                return Status.APPROVED;
             }
         }
-        return 3;
+        return Status.DENIED;
     }
 
+    public boolean isSenderOrReciever(Principal principal, Transfer transfer) {
+        User principalUser = userDao.findByUsername(principal.getName());
+        List<Account> principalAccounts = accountDao.getAllMyAccounts(principalUser.getId());
+        for(Account acc : principalAccounts)     {
+            if(acc.getAccountId() == transfer.getReceiverId() || acc.getAccountId() == transfer.getSenderId()) return true;
+        }
+        return false;
+    }
 
     public boolean transferAmountChecker(BigDecimal amount) {
         if(amount.compareTo(BigDecimal.valueOf(0)) <= 0) throw new BizLogicException("cannot send an amount equal or less than 0.");

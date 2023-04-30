@@ -1,5 +1,6 @@
 package com.techelevator.tenmo.dao.transaction;
 
+import com.techelevator.tenmo.model.Status;
 import com.techelevator.tenmo.model.Transfer;
 
 import java.math.BigDecimal;
@@ -15,8 +16,8 @@ public interface TransferDao {
 
     Transfer getTransfer(int transferId);
 
-    Transfer createTransfer(int senderId, int receiverId, BigDecimal transferAmount);
+    Transfer createTransfer(int senderId, int receiverId, BigDecimal transferAmount, Status status);
 
-    Transfer updateTransfer(Transfer transfer, int transferId);
+    Transfer updateTransfer(Transfer transfer);
 
 }

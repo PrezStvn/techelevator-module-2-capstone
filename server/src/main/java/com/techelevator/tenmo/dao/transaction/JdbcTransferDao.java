@@ -88,7 +88,7 @@ public class JdbcTransferDao implements TransferDao {
     }
     // TODO see if receiver id exist
     @Override
-    public Transfer createTransfer(int senderId, int receiverId, BigDecimal transferAmount) {git 
+    public Transfer createTransfer(int senderId, int receiverId, BigDecimal transferAmount)  {
 // 5.8. A Sending Transfer has an initial status of *Approved*.
         Transfer newTransfer = null;
         String sql = "INSERT INTO transfers (sender_id, receiver_id, transfer_amount, transfer_status) " +

@@ -41,6 +41,11 @@ public class TransferServiceLogic {
         transfer.setTransferAmount(transferAmount);
     }
 
+    public boolean onCreateChecks(){
+        if(!transferAmountChecker(transfer.getTransferAmount())) return false;
+        return true;
+    }
+
     public void isTransferSentOrRequested() {
         List<Account> principalAccounts = accountDao.getAllMyAccounts(principalUser.getId());
 
@@ -55,12 +60,16 @@ public class TransferServiceLogic {
     }
 
     public boolean transferAmountChecker(BigDecimal amount) {
-
         if(amount.compareTo(BigDecimal.valueOf(0)) <= 0) return false;
         if(amount.compareTo(new BigDecimal(".01")) <= 0) return false;
-
         return true;
     }
 
+    public boolean preCompletionCheck(){
+        Account senderAccount = accountDao.findByAccountId(transfer.getSenderId());
+        BigDecimal senderBalance = senderAccount.getBalance();
+        if(transfer.getTransferAmount().compareTo(senderBalance) > 0) return false;
+        return true;
+    }
 
 }

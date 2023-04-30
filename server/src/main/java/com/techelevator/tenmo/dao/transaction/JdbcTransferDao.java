@@ -10,12 +10,15 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.sql.Types.VARCHAR;
 
 @Component
 public class JdbcTransferDao implements TransferDao {
@@ -92,15 +95,17 @@ public class JdbcTransferDao implements TransferDao {
 
         Transfer newTransfer = null;
         String sql = "INSERT INTO transfers (transfer_status, sender_id, receiver_id, transfer_amount) " +
-                "VALUES (?, ?, ?, ?) " +
+                "VALUES ('" + status.toString() + "', ?, ?, ?) " +
                 "RETURNING transfer_id";
 
         try {
-            Integer transferId = jdbcTemplate.queryForObject(sql, Integer.class,  status.toString(), senderId, receiverId, transferAmount);
+            Integer transferId = jdbcTemplate.queryForObject(sql, Integer.class, senderId, receiverId, transferAmount);
             newTransfer = getTransfer(transferId);
             if(newTransfer.getStatus() == Status.APPROVED) {
                 transferApproved(senderId, receiverId, transferAmount);
             }
+
+
         } catch (CannotGetJdbcConnectionException e) {
             throw new DaoException("Unable to connect to server or database", e);
         } catch (BadSqlGrammarException e) {

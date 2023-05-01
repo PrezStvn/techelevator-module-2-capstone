@@ -5,6 +5,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import java.math.BigDecimal;
 
 public class Transfer {
+    //TODO: would consider @NotEmpty and other constraints moving forward.
     private int transferId;
     private int senderId;
     private int receiverId;

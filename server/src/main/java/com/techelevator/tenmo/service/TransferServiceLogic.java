@@ -19,17 +19,8 @@ public class TransferServiceLogic {
 
     /*
     * TODO:
-    *  Logic: intake Authorizer(Principal principal, int senderId, int receiverId, BigDecimal transferAmount)
-    *       needs to run query to retrieve principal userId and associated accounts
-    *       check against both fromAcc & toAcc -> validation logic -> send or receive request +->
-    *       transfer_status PENDING || APPROVED based on if principal == sender
-    *  Check 2: make sure transferAmount is > 0.
-    *  Check 3: ensure sender is not sending to self.
-    *  Check 4: maybe account balance checker should be in transfer jdbc and make it on update
-    *           this way we do not check to see if balance is high enough until money would actually move.
-    *           unkown to or from acc
-    *
-    *
+    *  really flesh out exceptions thrown with ppoper messagin and and actual exception passes.
+    *   some potentially redundant methods currently present.
      */
     public TransferServiceLogic( TransferDao transferDao, AccountDao accountDao, UserDao userDao) {
         this.userDao = userDao;
@@ -65,11 +56,16 @@ public class TransferServiceLogic {
         } else throw new BizLogicException("You have no business viewing transactions that do not involve you");
     }
 
+    //TODO: error on sender changing transaction status if not PENDING
     public boolean onUpdateChecks(Principal principal, Transfer transfer) {
-        if(isSender(principal, transfer)) {
-            transferDao.updateTransfer(transfer);
-            return true;
-        }
+        Transfer currentTransferFromDB = transferDao.getTransfer(transfer.getTransferId());
+        if(currentTransferFromDB.getStatus() == Status.PENDING) {
+            if(isSender(principal, transfer)) {
+                transferDao.updateTransfer(transfer);
+                return true;
+            }
+        } else throw new BizLogicException("The selected transaction is already completed");
+
         return false;
     }
 

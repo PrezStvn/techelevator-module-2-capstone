@@ -23,7 +23,7 @@ public class AccountServiceLogic {
 
     }
 
-    /* TODO: Attempting to view account not owned by principal
+    /* TODO: Could this be elsewhere?
      *
      */
     public boolean canIGet(Principal principal, int id) {

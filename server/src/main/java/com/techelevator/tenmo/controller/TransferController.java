@@ -38,7 +38,11 @@ public class TransferController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transfer Not Found");
         } else return transfer;
     }
-
+    /*TODO:rewrite method with input params inside the method body
+     *  do this in order to obfuscate transfer information behind a layer of security
+     *  will need to create a model/map class to intake whole json
+     * could just use transfer
+     */
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(path = "", method = RequestMethod.POST)
     public Transfer create(@Valid @RequestParam int senderId, @Valid @RequestParam("receiverId") int receiverId, @Valid @RequestParam BigDecimal transferAmount, Principal principal) {

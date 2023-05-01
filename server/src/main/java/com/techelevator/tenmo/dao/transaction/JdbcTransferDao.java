@@ -5,12 +5,10 @@ import com.techelevator.tenmo.exception.DaoException;
 import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Status;
 import com.techelevator.tenmo.model.Transfer;
-import com.techelevator.tenmo.service.TransferServiceLogic;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +16,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.sql.Types.VARCHAR;
 
 @Component
 public class JdbcTransferDao implements TransferDao {
@@ -89,11 +86,12 @@ public class JdbcTransferDao implements TransferDao {
         }
         return transfer;
     }
-    // TODO see if receiver id exist
+
     @Override
     public Transfer createTransfer(int senderId, int receiverId, BigDecimal transferAmount, Status status)  {
 
         Transfer newTransfer = null;
+        //TODO: is there any other way to input an enum using spring?
         String sql = "INSERT INTO transfers (transfer_status, sender_id, receiver_id, transfer_amount) " +
                 "VALUES ('" + status.toString() + "', ?, ?, ?) " +
                 "RETURNING transfer_id";

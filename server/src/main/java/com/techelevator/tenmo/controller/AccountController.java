@@ -41,7 +41,7 @@ public class AccountController {
         }
         return users;
     }
-    //TODO: may want to consider creating custom exception and throwing it from the logic service;
+    //TODO: once again could rewrite to obfuscate any data being sent between client and server;
     @RequestMapping(path = "/{id}", method = RequestMethod.GET)
     public Account get(@PathVariable int id, Principal principal) {
         if(!(logic.canIGet(principal, id))) {
